@@ -1,0 +1,34 @@
+# Python environments and caches
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+
+# Local environment variables
+*.env
+.env*
+
+# Node / frontend artifacts
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Logs and coverage
+*.log
+coverage/
+.coverage
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build outputs or temp data
+backend/data/vector-store/
+backend/data/projects.json
+backend/templates/_meta/
+.qodo/
