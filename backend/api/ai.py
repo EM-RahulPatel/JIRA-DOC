@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 
 from jira_ai.compose_issue import compose_issue_from_prompt
@@ -12,6 +14,7 @@ from jira_ai.update_issue import analyze_issue_update, apply_issue_update
 from schemas import AICreateIssueRequest, AIUpdateIssueRequest, IssueDraft
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+logger = logging.getLogger(__name__)
 
 
 def _to_list(value):
@@ -57,7 +60,8 @@ async def ai_create_issue(payload: AICreateIssueRequest):
 	except ValueError as exc:
 		raise HTTPException(status_code=400, detail=str(exc)) from exc
 	except Exception as exc:  # pragma: no cover - LLM/vectors may fail
-		raise HTTPException(status_code=500, detail=str(exc)) from exc
+		logger.exception("AI compose_issue_from_prompt failed for project %s", payload.projectKey)
+		raise HTTPException(status_code=502, detail=f"AI error: {exc}") from exc
 
 	merged_generated = _merge_draft(composed["generated"], payload.draft)
 
@@ -98,7 +102,8 @@ async def ai_create_issue(payload: AICreateIssueRequest):
 	try:
 		created = await jira_request("/rest/api/3/issue", "POST", issue_body)
 	except Exception as exc:  # pragma: no cover - network errors
-		raise HTTPException(status_code=502, detail=str(exc)) from exc
+		logger.exception("Jira issue creation failed for project %s", composed["projectKey"])
+		raise HTTPException(status_code=502, detail=f"Jira error: {exc}") from exc
 
 	return {
 		"mode": "compose",
