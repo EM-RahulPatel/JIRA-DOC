@@ -45,8 +45,13 @@ const styles = {
     border: "none",
     resize: "vertical",
     fontSize: "14px",
-    outline: "none",
     background: "transparent",
+  },
+
+  textareaFocus: {
+    outline: "2px solid #2563eb",
+    outlineOffset: "2px",
+    boxShadow: "0 0 0 2px rgba(37, 99, 235, 0.2)",
   },
 
   removeCell: {

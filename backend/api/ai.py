@@ -61,7 +61,7 @@ async def ai_create_issue(payload: AICreateIssueRequest):
 		raise HTTPException(status_code=400, detail=str(exc)) from exc
 	except Exception as exc:  # pragma: no cover - LLM/vectors may fail
 		logger.exception("AI compose_issue_from_prompt failed for project %s", payload.projectKey)
-		raise HTTPException(status_code=502, detail=f"AI error: {exc}") from exc
+		raise HTTPException(status_code=502, detail="AI service error") from exc
 
 	merged_generated = _merge_draft(composed["generated"], payload.draft)
 
@@ -103,8 +103,7 @@ async def ai_create_issue(payload: AICreateIssueRequest):
 		created = await jira_request("/rest/api/3/issue", "POST", issue_body)
 	except Exception as exc:  # pragma: no cover - network errors
 		logger.exception("Jira issue creation failed for project %s", composed["projectKey"])
-		raise HTTPException(status_code=502, detail=f"Jira error: {exc}") from exc
-
+		raise HTTPException(status_code=502, detail="Jira service error") from exc
 	return {
 		"mode": "compose",
 		"projectKey": composed["projectKey"],
