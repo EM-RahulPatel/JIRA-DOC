@@ -1,39 +1,49 @@
-import styles from "../styles";
+import { useMemo } from "react";
+import styles from "./styles/tableStyles";
 import { cloneTableData, friendlyLabel } from "../utils/fieldUtils";
 
 const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
-  const tableValue = Array.isArray(value) && value.length
-    ? value.map((row) => (Array.isArray(row) ? row.map((cell) => cell ?? "") : []))
-    : cloneTableData(field.rows || field.default || []);
+  const tableValue = useMemo(() => {
+    if (Array.isArray(value) && value.length > 0) {
+      return value.map((row) =>
+        Array.isArray(row) ? row.map((cell) => cell ?? "") : []
+      );
+    }
+    return cloneTableData(field.rows || field.default || []);
+  }, [value, field]);
 
   return (
-    <div style={styles.fieldBlock}>
-      <label style={styles.label}>{field.label || friendlyLabel(field.name)}</label>
-      <div style={styles.tableWrapper}>
-        <table style={styles.dataTable}>
+    <div style={styles.wrapper}>
+      <div style={styles.headerRow}>
+        <label style={styles.label}>{field.label || friendlyLabel(field.name)}</label>
+      </div>
+
+      <div style={styles.tableContainer}>
+        <table style={styles.table}>
           <tbody>
             {tableValue.map((row, rowIndex) => (
-              <tr key={`${field.name}-row-${rowIndex}`}>
+              <tr key={rowIndex} style={styles.row}>
                 {row.map((cell, colIndex) => (
-                  <td key={`${field.name}-cell-${rowIndex}-${colIndex}`} style={styles.tableCell}>
+                  <td key={colIndex} style={styles.cell}>
                     <textarea
                       value={cell}
-                      onChange={(event) =>
-                        onCellChange(field.name, rowIndex, colIndex, event.target.value)
+                      onChange={(e) =>
+                        onCellChange(field.name, rowIndex, colIndex, e.target.value)
                       }
-                      style={styles.tableCellTextarea}
-                      rows={2}
+                      style={styles.textarea}
                     />
                   </td>
                 ))}
-                <td style={styles.tableRowActions}>
+
+                {/* Remove Button */}
+                <td style={styles.removeCell}>
                   <button
                     type="button"
-                    style={styles.removeRowBtn}
+                    style={styles.removeBtn}
                     onClick={() => onRemoveRow(field.name, rowIndex)}
                     disabled={tableValue.length <= 1}
                   >
-                    Remove
+                    ✕
                   </button>
                 </td>
               </tr>
@@ -41,10 +51,12 @@ const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
           </tbody>
         </table>
       </div>
-      <button type="button" style={styles.addRowBtn} onClick={() => onAddRow(field.name)}>
-        Add Row
-      </button>
-      {field.help && <p style={styles.helpText}>{field.help}</p>}
+
+      <div style={styles.footer}>
+        <button type="button" style={styles.addRowBtn} onClick={() => onAddRow(field.name)}>
+          + Add Row
+        </button>
+      </div>
     </div>
   );
 };
