@@ -123,9 +123,11 @@ async def ai_update_issue(payload: AIUpdateIssueRequest):
 	except ValueError as exc:
 		raise HTTPException(status_code=400, detail=str(exc)) from exc
 	except RuntimeError as exc:
-		raise HTTPException(status_code=502, detail=str(exc)) from exc
+		logger.exception("AI update runtime failure")
+		raise HTTPException(status_code=502, detail="AI service error") from exc
 	except Exception as exc:
-		raise HTTPException(status_code=500, detail=str(exc)) from exc
+		logger.exception("AI update unexpected failure")
+		raise HTTPException(status_code=500, detail="AI service error") from exc
 
 	return {**result, "analysis": analysis}
 

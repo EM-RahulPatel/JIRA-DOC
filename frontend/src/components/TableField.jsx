@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles/tableStyles";
 import { cloneTableData, friendlyLabel } from "../utils/fieldUtils";
 
@@ -7,6 +7,7 @@ const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
   const cellIdMapRef = useRef(new Map());
   const idCounterRef = useRef(0);
   const [focusedCellId, setFocusedCellId] = useState(null);
+  const [tableRows, setTableRows] = useState([]);
 
   useEffect(() => {
     rowIdOrderRef.current = [];
@@ -14,10 +15,10 @@ const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
     idCounterRef.current = 0;
   }, [field.name]);
 
-  const generateId = (prefix) => {
+  const generateId = useCallback((prefix) => {
     idCounterRef.current += 1;
     return `${field.name || "table"}-${prefix}-${idCounterRef.current}`;
-  };
+  }, [field.name]);
 
   const normalizedRows = useMemo(() => {
     if (Array.isArray(value) && value.length > 0) {
@@ -28,7 +29,7 @@ const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
     return cloneTableData(field.rows || field.default || []);
   }, [value, field]);
 
-  const tableRows = useMemo(() => {
+  useEffect(() => {
     const existingRowIds = rowIdOrderRef.current.slice(0, normalizedRows.length);
     while (existingRowIds.length < normalizedRows.length) {
       existingRowIds.push(null);
@@ -72,9 +73,8 @@ const TableField = ({ field, value, onCellChange, onAddRow, onRemoveRow }) => {
 
     rowIdOrderRef.current = existingRowIds;
     cellIdMapRef.current = nextCellIdMap;
-
-    return rowsWithIds;
-  }, [normalizedRows, field.name]);
+    setTableRows(rowsWithIds);
+  }, [normalizedRows, field.name, generateId]);
 
   const handleRemoveRow = (rowIndex) => {
     const currentOrder = [...rowIdOrderRef.current];
